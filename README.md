@@ -1,10 +1,13 @@
 # Voice-RAG Customer Service Bot (Financial Domain)
 
+**English** | [Español](README.es.md)
+
 A voice-driven customer service bot for a financial domain — balance
 inquiries, statements, recent transactions — built to demonstrate a complete,
 **latency-aware** voice pipeline: **STT → intent → RAG → LLM → TTS**,
 streaming end-to-end. Runs entirely on a **local, free stack** (Ollama,
-ChromaDB, faster-whisper, Piper) — no API keys required.
+ChromaDB, faster-whisper, Piper) — no API keys required. The demo speaks
+**English and Spanish** (user-selectable) and ships a light/dark theme.
 
 This project attacks the two ways voice bots typically fail: retrieving the
 wrong information (a RAG failure), and retrieving the right information but
@@ -70,8 +73,9 @@ ollama pull nomic-embed-text
 uv venv --python 3.12 .venv
 uv pip install -e ".[dev]" --python .venv
 
-# 3. Download the Piper voice
+# 3. Download the Piper voices (English + Spanish)
 .venv/Scripts/python -m piper.download_voices en_US-lessac-medium --download-dir data/models/piper
+.venv/Scripts/python -m piper.download_voices es_MX-ald-medium --download-dir data/models/piper
 
 # 4. Ingest the knowledge base into Chroma
 .venv/Scripts/python -m app.rag.ingest
@@ -123,14 +127,18 @@ This project follows spec-driven development in two stages:
    decisions (AD-1..AD-5), explicit non-goals and success metrics.
 2. **[spec-kit](https://github.com/github/spec-kit)** for implementation —
    the PRD's five build phases each became a spec-kit feature under
-   `specs/00N-*/`, each with its own `spec.md` (what/why, user stories,
-   acceptance criteria), `plan.md` (how, referencing the architecture's
-   AD-N decisions), and `tasks.md` (ordered implementation tasks + the
-   phase's actual test results). No phase's implementation started before
-   its spec/plan/tasks existed, and no phase was considered done until its
-   dedicated test suite passed — see each `specs/00N-*/tasks.md` "Phase gate
-   result" for what actually happened, including the honest, non-clean
-   latency finding in Phase 3.
+   `specs/00N-*/` (a sixth, `006-language-and-theme`, added the bilingual
+   surface and dark mode later, via a formal constitution amendment), each
+   with its own `spec.md` (what/why, user stories, acceptance criteria),
+   `plan.md` (how, referencing the architecture's AD-N decisions), and
+   `tasks.md` (ordered implementation tasks + the phase's actual test
+   results). No phase's implementation started before its spec/plan/tasks
+   existed, and no phase was considered done until its dedicated test suite
+   passed — see each `specs/00N-*/tasks.md` "Phase gate result" for what
+   actually happened, including the honest, non-clean latency finding in
+   Phase 3. A full SDD compliance audit — with real violations found and
+   remediated — lives in
+   [`docs/sdd-compliance-audit.md`](docs/sdd-compliance-audit.md).
 
 ## Latency metrics
 
@@ -188,22 +196,35 @@ behind a cleaner-looking metric, is itself the point: an interviewer asking
 of a marketing number.
 
 **No hallucination is enforced structurally, not just by prompting.**
-`app/rag/retriever.py` returns a similarity score with every retrieval;
-`app/llm/client.py` refuses to call the LLM in open-ended mode when that
-score is below a tuned threshold (0.62, empirically separating in-domain
-scores of 0.696-0.901 from out-of-domain scores of 0.511-0.562 on this
-project's knowledge base). During development, the LLM was still caught
-doing unwanted arithmetic — stating a balance, then "helpfully" adding a
-visible transaction amount to it and reporting a wrong total. Fixed with
-three changes, all still in the code and comments where they matter:
-dropping per-transaction chunks in favor of one aggregated per-account
-summary (`app/rag/ingest.py`), `temperature=0` greedy decoding for factual
-QA (`app/llm/client.py`), and grouping retrieved context into labeled
-sections by type instead of one flat blob. This is exactly the kind of
-failure a fixed 10-question test set can miss — it happened during ad hoc
-manual testing beyond the test suite, which is why the SPEC's own
-non-hallucination requirement is enforced at the retrieval-gate level, not
-just hoped for from prompting.
+Layered defenses, each added after a *real* failure was caught by the test
+gates rather than designed speculatively:
+- **Retrieval score gate**: `app/rag/retriever.py` returns a similarity
+  score with every retrieval; `app/llm/client.py` refuses to call the LLM in
+  open-ended mode below a measured threshold (currently 0.68 — recalibrated
+  from the original 0.62 after knowledge-base text changes shifted the whole
+  embedding landscape, a lesson learned the hard way: every KB edit requires
+  re-measuring the threshold).
+- **Guaranteed context**: when the user explicitly names an account, that
+  account's balance chunk is always included in the LLM context — a degraded
+  phrasing once ranked four FAQs above it and the model fabricated a balance
+  ("$1,200") from nothing.
+- **Per-sentence figure guard**: every number in a generated sentence must
+  exist in the retrieved context, verified *before* that sentence's audio is
+  synthesized — in a voice bot, a fabricated figure must never be spoken.
+- Plus the earlier fixes still in place: aggregated per-account transaction
+  chunks, `temperature=0` greedy decoding, and type-labeled context sections
+  (the LLM was once caught adding a visible deposit to an already-final
+  balance and reporting the wrong total).
+
+**Spanish mode is English-internal by design.** Direct cross-lingual
+retrieval measured 0.47-0.54 on in-domain Spanish queries —
+indistinguishable from out-of-domain — so Spanish speech is transcribed
+natively (reliable) and translated to English *as text* by the local LLM for
+retrieval; the answer is then generated in Spanish and spoken with an es_MX
+Piper voice. Whisper's built-in translate mode was tried first and abandoned
+with evidence: it produced *different* garbled translations of the same
+audio across runs ("saldo" → save/sale/fate). See
+`specs/006-language-and-theme/plan.md`'s Complexity Tracking.
 
 **Escalation is deliberately narrower than the original PRD wording.**
 `app/escalation.py` escalates on ungrounded retrieval or an explicit human
@@ -237,6 +258,7 @@ pytest tests/test_rag_qa.py -v            # Phase 1: 10-question RAG correctness
 pytest tests/test_pipeline_sequential.py -v   # Phase 2: STT/TTS sequential
 pytest tests/test_pipeline_streaming.py -v    # Phase 3: streaming pipeline
 pytest tests/test_escalation.py -v            # Phase 4: fallback/escalation
+pytest tests/test_language.py -v              # Feature 006: Spanish mode + ghost-turn guard
 python -m scripts.latency_report          # regenerate docs/latency/report.md + chart
 ```
 
@@ -257,8 +279,11 @@ Explicitly out of scope for this v1 (see `_bmad-output/planning-artifacts/PRD.md
   alternatives to the local stack — the `app/llm`, `app/voice`, `app/rag`
   wrapper boundaries (AD-1) are designed so this is a wrapper change, not a
   pipeline redesign.
-- **Multi-language support** — English only in v1, end to end (STT model,
-  TTS voice, knowledge base, UI copy).
+- **More languages beyond English/Spanish** — the v1 non-goal of
+  multi-language support was later amended (constitution v1.1.0) and
+  English/Spanish shipped as `specs/006-language-and-theme`; additional
+  languages would follow the same pattern (native transcription + LLM text
+  translation + a per-language Piper voice).
 - **True incremental/streaming STT** — faster-whisper has no incremental
   decoder; a whisper.cpp-streaming-style or Vosk-based approach would avoid
   the periodic-re-transcription overhead this README's Design Decisions
