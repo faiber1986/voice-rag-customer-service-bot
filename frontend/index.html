@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice-RAG Customer Service Bot — Demo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main>
+    <div class="top-bar">
+      <div class="controls">
+        <select id="language-select" aria-label="Language">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
+        <button id="theme-toggle" aria-label="Toggle theme">🌙</button>
+      </div>
+    </div>
+
+    <h1 id="ui-title">Voice-RAG Customer Service Bot</h1>
+    <p class="subtitle" id="ui-subtitle">Financial domain demo — streaming voice pipeline (STT &rarr; RAG &rarr; LLM &rarr; TTS)</p>
+
+    <div class="status-row">
+      <span id="connection-status" class="badge badge-disconnected">Disconnected</span>
+      <span id="turn-status" class="badge badge-idle">Idle</span>
+    </div>
+
+    <button id="record-button" disabled>Hold to talk</button>
+
+    <section class="panel" id="transcript-panel">
+      <h2 id="ui-transcript-heading">Transcript</h2>
+      <p id="transcript" class="transcript"></p>
+    </section>
+
+    <section class="panel">
+      <h2 id="ui-answer-heading">Answer</h2>
+      <p id="answer" class="answer"></p>
+    </section>
+
+    <section class="panel">
+      <h2 id="ui-examples-heading">Try asking</h2>
+      <ul class="examples" id="examples-list"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+data/chroma/
+data/audio_out/
+data/models/
+logs/*.jsonl
+.env
+*.wav
+!tests/fixtures/**/*.wav
+_bmad-output/planning-artifacts/*.tmp
+.claude/settings.local.json
+.claude/scheduled_tasks.lock

@@ -1,0 +1,34 @@
+{
+  "customer_name": "Alex Morgan",
+  "customer_id": "demo-customer-001",
+  "accounts": [
+    {
+      "account_id": "chk-1001",
+      "type": "checking",
+      "nickname": "Everyday Checking",
+      "account_number_masked": "****4821",
+      "balance": 2483.17,
+      "currency": "USD"
+    },
+    {
+      "account_id": "sav-2001",
+      "type": "savings",
+      "nickname": "Rainy Day Savings",
+      "account_number_masked": "****7790",
+      "balance": 11250.62,
+      "currency": "USD"
+    }
+  ],
+  "transactions": [
+    {"date": "2026-07-07", "account_id": "chk-1001", "description": "Trader Joe's #412", "amount": -54.23, "category": "groceries"},
+    {"date": "2026-07-06", "account_id": "chk-1001", "description": "Direct Deposit - Payroll", "amount": 2100.00, "category": "income"},
+    {"date": "2026-07-05", "account_id": "chk-1001", "description": "Netflix.com", "amount": -15.49, "category": "subscription"},
+    {"date": "2026-07-04", "account_id": "chk-1001", "description": "Shell Gas Station", "amount": -41.80, "category": "transportation"},
+    {"date": "2026-07-03", "account_id": "chk-1001", "description": "Transfer to Rainy Day Savings", "amount": -300.00, "category": "transfer"},
+    {"date": "2026-07-03", "account_id": "sav-2001", "description": "Transfer from Everyday Checking", "amount": 300.00, "category": "transfer"},
+    {"date": "2026-07-01", "account_id": "chk-1001", "description": "Green Valley Apartments - Rent", "amount": -1450.00, "category": "housing"},
+    {"date": "2026-06-29", "account_id": "chk-1001", "description": "Blue Bottle Coffee", "amount": -6.75, "category": "dining"},
+    {"date": "2026-06-27", "account_id": "chk-1001", "description": "Amazon.com", "amount": -89.34, "category": "shopping"},
+    {"date": "2026-06-25", "account_id": "sav-2001", "description": "Interest Payment", "amount": 22.14, "category": "interest"}
+  ]
+}

@@ -1,0 +1,45 @@
+[project]
+name = "voice-rag-bot"
+version = "0.1.0"
+description = "Voice-RAG customer service bot for the financial domain (STT -> RAG -> LLM -> TTS, streaming end-to-end)"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "websockets>=13.0",
+    "httpx>=0.27",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "chromadb>=0.5.20",
+    "ollama>=0.4.4",
+    "faster-whisper>=1.1.0",
+    "piper-tts>=1.2.0",
+    "webrtcvad>=2.0.10",
+    "numpy>=1.26,<2.0",
+    "python-multipart>=0.0.12",
+    "matplotlib>=3.9",
+    # Pinned below current latest: newer `av` (18.x) ships a device-enumeration
+    # DLL that gets blocked by Windows Application Control policy on this
+    # machine; newer setuptools (81+) dropped pkg_resources, which webrtcvad
+    # still imports at module load time.
+    "av==13.1.0",
+    "setuptools<81",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
